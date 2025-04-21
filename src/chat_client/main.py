@@ -93,7 +93,7 @@ def daemon(ctx, kill):
             sys.exit(1)
     else:
         print("デーモンの終了方法:")
-        print("bin/chat-client daemon --kill")
+        print("bin/chat_client daemon --kill")
         
         print("\nデーモンの起動方法:")
         print("bin/hal --fix-reply-daemon=\"固定返答メッセージ\"")
