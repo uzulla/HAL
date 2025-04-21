@@ -22,20 +22,24 @@ class TUIApp(App):
         grid-rows: 1fr 3fr 1fr auto;
     }
     
+    #request-container {
         height: 100%;
         overflow-y: scroll;
         border: solid green;
     }
     
+    #response-container {
         height: 100%;
         border: solid blue;
     }
     
+    #controls-container {
         height: 100%;
         layout: horizontal;
         border: solid red;
     }
     
+    #help-container {
         height: auto;
         border: solid yellow;
         background: $accent;
