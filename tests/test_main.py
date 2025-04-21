@@ -37,12 +37,12 @@ def test_main_verbose_mode():
     
     with patch("src.hal.main.uvicorn.run"):
         with patch("src.hal.main.HALServer") as mock_server:
-            with patch("src.hal.main.logger") as mock_logger:
+            with patch("src.hal.utils.setup_logging") as mock_setup_logging:
                 result = runner.invoke(main, ["--verbose"])
                 
                 assert result.exit_code == 0
                 
-                mock_logger.add.assert_called()
+                mock_setup_logging.assert_called_once_with(verbose=True, log_file=None)
                 
                 mock_server.assert_called_once_with(verbose=True, fix_reply=None)
 
@@ -58,3 +58,29 @@ def test_main_daemon_mode():
             assert result.exit_code == 0
             
             mock_server.assert_called_once_with(verbose=False, fix_reply="固定応答")
+
+
+def test_main_log_file_option():
+    """HALメイン関数のログファイルオプションテスト"""
+    runner = CliRunner()
+    test_log_file = "test_main.log"
+    
+    if os.path.exists(test_log_file):
+        os.unlink(test_log_file)
+    
+    try:
+        with patch("src.hal.main.uvicorn.run"):
+            with patch("src.hal.main.HALServer") as mock_server:
+                with patch("src.hal.utils.setup_logging") as mock_setup_logging:
+                    result = runner.invoke(main, ["--log", test_log_file])
+                    
+                    assert result.exit_code == 0
+                    
+                    mock_setup_logging.assert_called_once_with(
+                        verbose=False, log_file=test_log_file
+                    )
+                    mock_server.assert_called_once_with(verbose=False, fix_reply=None)
+    
+    finally:
+        if os.path.exists(test_log_file):
+            os.unlink(test_log_file)
