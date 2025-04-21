@@ -1,6 +1,6 @@
 import os
 import sys
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -116,5 +116,6 @@ async def test_verbose_request_logging():
             with patch("src.hal.server.authenticate", return_value=True):
                 await chat_route.endpoint(request, mock_raw_request)
                 
-                mock_logger.debug.assert_any_call(f"HTTPリクエストヘッダー: {dict(mock_raw_request.headers)}")
+                headers_dict = dict(mock_raw_request.headers)
+                mock_logger.debug.assert_any_call(f"HTTPリクエストヘッダー: {headers_dict}")
                 mock_logger.debug.assert_any_call("HTTPリクエストボディ: {\"test\": \"data\"}")
