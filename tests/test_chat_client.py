@@ -1,14 +1,13 @@
 import os
 import sys
-import json
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from click.testing import CliRunner
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
-from chat_client.main import cli, send, daemon
+from chat_client.main import cli
 
 
 def test_cli_initialization():
