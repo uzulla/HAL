@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Dict, List, Union
+from typing import Any, Dict
 
 from loguru import logger
 from pydantic import BaseModel
@@ -9,13 +9,10 @@ from textual.reactive import reactive
 from textual.widgets import Button, Footer, Header, Label, Static, TextArea
 
 
-class MessageContentPart(BaseModel):
-    type: str
-    text: str
-
 class Message(BaseModel):
     role: str
-    content: Union[str, List[MessageContentPart]]
+    content: str
+
 
 class TUIApp(App):
     CSS = """
@@ -85,14 +82,14 @@ class TUIApp(App):
             yield TextArea(id="response-input")
         
         with Horizontal(id="controls-container"):
-            yield Button("送信 [Ctrl+Enter]", id="send", variant="primary")
+            yield Button("送信 [F12]", id="send", variant="primary")
             yield Button("対応不可 [F1]", id="cannot-answer", variant="warning")
             yield Button("内部エラー [F2]", id="internal-error", variant="error")
             yield Button("権限なし [F3]", id="forbidden", variant="error")
         
         with Container(id="help-container"):
             yield Static("操作方法: [F1] 対応不可 | [F2] 内部エラー | [F3] 権限なし | "
-                         "[Ctrl+Enter/Cmd+Enter] 送信")
+                         "[F12] 送信")
         
         yield Footer()
     
@@ -110,17 +107,7 @@ class TUIApp(App):
         
         messages_text = "メッセージ:\n"
         for msg in self.request_data["messages"]:
-            role = msg['role']
-            content = msg['content']
-            
-            if isinstance(content, list):
-                content_text = ""
-                for part in content:
-                    if part.get('type') == 'text':
-                        content_text += part.get('text', '') + " "
-                content = content_text.strip()
-                
-            messages_text += f"- {role}: {content}\n"
+            messages_text += f"- {msg['role']}: {msg['content']}\n"
         messages_display.update(messages_text)
         
         params_text = "パラメータ:\n"
@@ -164,8 +151,7 @@ class TUIApp(App):
             self.response_data = {"error": "forbidden"}
             self.response_ready.set()
             self.exit()
-        elif (event.key == "ctrl+enter" or event.key == "ctrl+m" or 
-              event.key == "cmd+enter" or event.key == "cmd+m"):
+        elif event.key == "f12":
             self.submit_response()
         elif event.key == "enter" and not isinstance(self.focused, TextArea):
             self.submit_response()
@@ -178,6 +164,7 @@ class TUIApp(App):
         if self.verbose:
             logger.info(f"応答を送信: {response_text}")
         self.exit()
+
 
 async def process_request(request_data, verbose=False):
     """リクエストをTUIで処理し、結果を返す"""
