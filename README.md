@@ -1,10 +1,10 @@
 # HAL = Humans Are Listening
 
-CLI/TUI アプリケーション「HAL」は、外部の AI Agent から OpenAI の /v1/chat/completions API 互換リクエストを受け取り、裏側で人間がレスポンスを書いて返すサービスです。
+「HAL」は、外部の AI Agent から OpenAI の /v1/chat/completions API 互換リクエストを受け取り、裏側で人間がレスポンスを書いて返すサービスです。
 
 ## 機能
 
-- API と互換性を持つ HTTP サーバー
+- OpenAI API と互換性を持つ HTTP サーバー
 - 同時リクエスト不可（排他制御）
 - 画面上にリクエスト内容を表示し、人間オペレータが応答文を作成
 - 応答を JSON 形式で返却
