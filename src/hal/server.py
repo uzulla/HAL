@@ -165,7 +165,7 @@ class HALServer:
                         }]
                     )
                 
-                from .tui import process_request
+                from .tui_fix import process_request
                 result = await process_request(request)
                 
                 if self.verbose:
