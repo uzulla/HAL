@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# HAL - Humans Are Listening - CLI/TUI application launcher
+# This script launches the HAL application
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+# Get the project root directory (parent of bin)
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." &> /dev/null && pwd )"
+
+# Activate virtual environment if it exists
+if [ -d "$PROJECT_ROOT/venv" ]; then
+    source "$PROJECT_ROOT/venv/bin/activate"
+fi
+
+# Run the HAL application with all arguments passed to this script
+python -m src.hal.main "$@"
+
+# Deactivate virtual environment if it was activated
+if [ -n "$VIRTUAL_ENV" ]; then
+    deactivate
+fi
