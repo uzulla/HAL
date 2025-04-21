@@ -1,7 +1,7 @@
 import threading
 import time
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -12,9 +12,13 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 request_lock = threading.Lock()
 
+class MessageContentPart(BaseModel):
+    type: str
+    text: str
+
 class Message(BaseModel):
     role: str
-    content: str
+    content: Union[str, List[MessageContentPart]]
 
 class ChatCompletionRequest(BaseModel):
     model: str

@@ -7,7 +7,13 @@ import pytest
 # プロジェクトルートをパスに追加
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.hal.server import ChatCompletionRequest, HALServer, authenticate
+from src.hal.server import (
+    ChatCompletionRequest,
+    HALServer,
+    Message,
+    MessageContentPart,
+    authenticate,
+)
 
 
 def test_server_initialization():
@@ -119,3 +125,63 @@ async def test_verbose_request_logging():
                 headers_dict = dict(mock_raw_request.headers)
                 mock_logger.debug.assert_any_call(f"HTTPリクエストヘッダー: {headers_dict}")
                 mock_logger.debug.assert_any_call("HTTPリクエストボディ: {\"test\": \"data\"}")
+
+
+def test_message_model_array_content():
+    """配列形式のコンテンツを持つMessageモデルのテスト"""
+    message = Message(
+        role="user",
+        content=[
+            MessageContentPart(type="text", text="これはテストです"),
+            MessageContentPart(type="text", text="配列形式のコンテンツ")
+        ]
+    )
+    
+    assert message.role == "user"
+    assert isinstance(message.content, list)
+    assert len(message.content) == 2
+    assert message.content[0].type == "text"
+    assert message.content[0].text == "これはテストです"
+    assert message.content[1].type == "text"
+    assert message.content[1].text == "配列形式のコンテンツ"
+    
+    message_str = Message(role="user", content="こんにちは")
+    assert message_str.role == "user"
+    assert message_str.content == "こんにちは"
+
+
+@pytest.mark.asyncio
+async def test_server_daemon_array_content():
+    """デーモンモードでの配列形式コンテンツのテスト"""
+    server = HALServer(verbose=True, fix_reply="テスト応答")
+    
+    request_data = {
+        "model": "gpt-4",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "これはテストです"},
+                    {"type": "text", "text": "配列形式のコンテンツ"}
+                ]
+            }
+        ]
+    }
+    
+    request = ChatCompletionRequest(**request_data)
+    
+    with patch("src.hal.server.request_lock") as mock_lock:
+        mock_lock.acquire.return_value = True
+        
+        with patch("src.hal.server.authenticate", return_value=True):
+            routes = server.app.routes
+            chat_route = [r for r in routes if r.path == "/v1/chat/completions"][0]
+            
+            mock_raw_request = MagicMock()
+            mock_raw_request.headers = {"Content-Type": "application/json"}
+            mock_raw_request.body = AsyncMock(return_value=b'{}')
+            
+            response = await chat_route.endpoint(request, mock_raw_request)
+            
+            assert response.model == "gpt-4"
+            assert response.choices[0]["message"]["content"] == "テスト応答"
