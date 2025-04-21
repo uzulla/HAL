@@ -1,0 +1,9 @@
+fastapi==0.110.0
+textual==0.52.1
+uvicorn==0.29.0
+loguru==0.7.2
+click==8.1.7
+httpx==0.28.1
+pytest==8.3.5
+pytest-asyncio==0.26.0
+requests==2.32.3

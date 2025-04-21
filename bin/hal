@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+HAL - Humans Are Listening
+"""
+
+import sys
+import os
+import argparse
+import uvicorn
+import signal
+from loguru import logger
+
+# Add the project root to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+
+from src.hal.server import HALServer
+
+# シグナルハンドラ
+def signal_handler(sig, frame):
+    logger.info("終了シグナルを受信しました。HALを終了します...")
+    sys.exit(0)
+
+def main():
+    """HAL - Humans Are Listening"""
+    # シグナルハンドラの設定
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
+    parser = argparse.ArgumentParser(description="HAL - Humans Are Listening")
+    parser.add_argument("--host", default="127.0.0.1", help="ホストアドレス")
+    parser.add_argument("--port", type=int, default=8000, help="ポート番号")
+    parser.add_argument("-v", "--verbose", action="store_true", help="詳細なログ出力モード")
+    parser.add_argument("--fix-reply-daemon", help="固定返答を返すデーモンモード")
+    
+    args = parser.parse_args()
+    
+    # ログ設定
+    logger.remove()
+    if args.verbose:
+        logger.add(sys.stderr, level="DEBUG")
+    else:
+        logger.add(sys.stderr, level="INFO")
+    
+    logger.info("HALを起動します")
+    
+    # サーバーインスタンス作成
+    server = HALServer(verbose=args.verbose, fix_reply=args.fix_reply_daemon)
+    
+    # サーバー起動
+    mode = "デーモンモード" if args.fix_reply_daemon else "通常モード"
+    logger.info(f"HALサーバーを起動します({mode}) - {args.host}:{args.port}")
+    
+    try:
+        uvicorn.run(server.app, host=args.host, port=args.port)
+    except KeyboardInterrupt:
+        logger.info("キーボード割り込みを検出しました。HALを終了します...")
+    except Exception as e:
+        logger.error(f"エラーが発生しました: {e}")
+    finally:
+        logger.info("HALを終了します")
+
+if __name__ == "__main__":
+    main()

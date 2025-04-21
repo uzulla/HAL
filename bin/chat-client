@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+HAL Test Client
+"""
+
+import sys
+import os
+import click
+import requests
+import json
+import signal
+from loguru import logger
+
+# Add the project root to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+
+# シグナルハンドラ
+def signal_handler(sig, frame):
+    logger.info("終了シグナルを受信しました。chat-clientを終了します...")
+    sys.exit(0)
+
+# シグナルハンドラの設定
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+
+import importlib.util
+spec = importlib.util.spec_from_file_location("main", os.path.join(project_root, "src", "chat-client", "main.py"))
+main_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(main_module)
+cli = main_module.cli
+
+if __name__ == "__main__":
+    try:
+        cli(obj={})
+    except KeyboardInterrupt:
+        logger.info("キーボード割り込みを検出しました。chat-clientを終了します...")
+    except Exception as e:
+        logger.error(f"エラーが発生しました: {e}")
+    finally:
+        logger.info("chat-clientを終了します")
