@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Dict
+from typing import Any, Dict, List, Union
 
 from loguru import logger
 from pydantic import BaseModel
@@ -9,9 +9,13 @@ from textual.reactive import reactive
 from textual.widgets import Button, Footer, Header, Label, Static, TextArea
 
 
+class MessageContentPart(BaseModel):
+    type: str
+    text: str
+
 class Message(BaseModel):
     role: str
-    content: str
+    content: Union[str, List[MessageContentPart]]
 
 class TUIApp(App):
     CSS = """
@@ -105,7 +109,17 @@ class TUIApp(App):
         
         messages_text = "メッセージ:\n"
         for msg in self.request_data["messages"]:
-            messages_text += f"- {msg['role']}: {msg['content']}\n"
+            role = msg['role']
+            content = msg['content']
+            
+            if isinstance(content, list):
+                content_text = ""
+                for part in content:
+                    if part.get('type') == 'text':
+                        content_text += part.get('text', '') + " "
+                content = content_text.strip()
+                
+            messages_text += f"- {role}: {content}\n"
         messages_display.update(messages_text)
         
         params_text = "パラメータ:\n"
