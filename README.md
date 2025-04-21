@@ -50,13 +50,13 @@ bin/hal --fix-reply-daemon="こんにちは、休暇中です。"
 
 ```bash
 # メッセージ送信
-bin/chat-client send --user "こんにちは、元気ですか？"
+bin/chat_client send --user "こんにちは、元気ですか？"
 
 # システムプロンプト付きメッセージ送信
-bin/chat-client send --system "あなたは医療アシスタントです。" --user "頭痛がします"
+bin/chat_client send --system "あなたは医療アシスタントです。" --user "頭痛がします"
 
 # デーモンの終了
-bin/chat-client daemon --kill --message "任意のメッセージ"
+bin/chat_client daemon --kill --message "任意のメッセージ"
 ```
 
 ## 操作方法
