@@ -3,10 +3,12 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional
 
-from fastapi import Depends, FastAPI, Header
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import BaseModel, Field
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 request_lock = threading.Lock()
 
@@ -35,6 +37,7 @@ class HALServer:
         self.app = FastAPI()
         self.verbose = verbose
         self.fix_reply = fix_reply
+        self.setup_exception_handlers()
         self.setup_routes()
         self.daemon_mode = fix_reply is not None
         
@@ -42,15 +45,99 @@ class HALServer:
             logger.info("Verbose mode enabled")
         if self.daemon_mode:
             logger.info(f"デーモンモード有効 - 固定返答: {fix_reply}")
+            
+    def setup_exception_handlers(self):
+        @self.app.exception_handler(StarletteHTTPException)
+        async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+            if self.verbose:
+                logger.warning(f"HTTPエラー: {exc.status_code} - {exc.detail}")
+                logger.debug(f"リクエストURL: {request.url}")
+                logger.debug(f"リクエストメソッド: {request.method}")
+                logger.debug(f"リクエストヘッダー: {dict(request.headers)}")
+                
+                try:
+                    body = await request.body()
+                    if body:
+                        logger.debug(f"リクエストボディ: {body.decode('utf-8', errors='replace')}")
+                except Exception as e:
+                    logger.debug(f"リクエストボディの取得に失敗: {e}")
+            
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"error": exc.detail}
+            )
+        
+        @self.app.exception_handler(RequestValidationError)
+        async def validation_exception_handler(request: Request, exc: RequestValidationError):
+            if self.verbose:
+                logger.warning(f"リクエスト検証エラー: {exc}")
+                logger.debug(f"リクエストURL: {request.url}")
+                logger.debug(f"リクエストメソッド: {request.method}")
+                logger.debug(f"リクエストヘッダー: {dict(request.headers)}")
+                
+                try:
+                    body = await request.body()
+                    if body:
+                        logger.debug(f"リクエストボディ: {body.decode('utf-8', errors='replace')}")
+                except Exception as e:
+                    logger.debug(f"リクエストボディの取得に失敗: {e}")
+            
+            return JSONResponse(
+                status_code=422,
+                content={"error": "validation_error", "detail": str(exc)}
+            )
+        
+        @self.app.exception_handler(404)
+        async def not_found_exception_handler(request: Request, exc: HTTPException):
+            if self.verbose:
+                logger.warning(f"未対応のURL: {request.url}")
+                logger.debug(f"リクエストメソッド: {request.method}")
+                logger.debug(f"リクエストヘッダー: {dict(request.headers)}")
+                
+                try:
+                    body = await request.body()
+                    if body:
+                        logger.debug(f"リクエストボディ: {body.decode('utf-8', errors='replace')}")
+                except Exception as e:
+                    logger.debug(f"リクエストボディの取得に失敗: {e}")
+            
+            return JSONResponse(
+                status_code=404,
+                content={"error": "not_found", "detail": f"URL '{request.url}' not found"}
+            )
+        
+        @self.app.exception_handler(405)
+        async def method_not_allowed_exception_handler(request: Request, exc: HTTPException):
+            if self.verbose:
+                logger.warning(f"未対応のメソッド: {request.method} for URL {request.url}")
+                logger.debug(f"リクエストヘッダー: {dict(request.headers)}")
+                
+                try:
+                    body = await request.body()
+                    if body:
+                        logger.debug(f"リクエストボディ: {body.decode('utf-8', errors='replace')}")
+                except Exception as e:
+                    logger.debug(f"リクエストボディの取得に失敗: {e}")
+            
+            error_detail = f"Method '{request.method}' not allowed for URL '{request.url}'"
+            return JSONResponse(
+                status_code=405,
+                content={"error": "method_not_allowed", "detail": error_detail}
+            )
 
     def setup_routes(self):
         @self.app.post("/v1/chat/completions")
         async def chat_completions(
             request: ChatCompletionRequest,
+            raw_request: Request,
             authenticated: bool = Depends(authenticate)
         ):
             if self.verbose:
                 logger.info(f"リクエスト受信: {request}")
+                logger.debug(f"HTTPリクエストヘッダー: {dict(raw_request.headers)}")
+                body = await raw_request.body()
+                if body:
+                    logger.debug(f"HTTPリクエストボディ: {body.decode('utf-8', errors='replace')}")
             
             if not request_lock.acquire(blocking=False):
                 if self.verbose:
