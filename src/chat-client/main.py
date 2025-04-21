@@ -27,12 +27,12 @@ def cli(ctx, verbose, host, port):
 @cli.command()
 @click.option("--model", default="gpt-4", help="使用するモデル")
 @click.option("--system", default="あなたは役立つアシスタントです。", help="システムプロンプト")
-@click.option("--user", required=True, help="ユーザーメッセージ")
+@click.option("--user", required=True, help="ユーザーメッセージ (必須)")
 @click.option("--max-tokens", default=1000, help="最大トークン数")
 @click.option("--temperature", default=0.7, help="温度パラメータ")
 @click.pass_context
 def send(ctx, model, system, user, max_tokens, temperature):
-    """メッセージをHALに送信する"""
+    """メッセージをHALに送信する (--user オプションが必須)"""
     host = ctx.obj["HOST"]
     port = ctx.obj["PORT"]
     verbose = ctx.obj["VERBOSE"]
@@ -75,11 +75,10 @@ def send(ctx, model, system, user, max_tokens, temperature):
         sys.exit(1)
 
 @cli.command()
-@click.option("--message", required=True, help="固定返答メッセージ")
 @click.option("--kill", is_flag=True, help="既存のデーモンを終了する")
 @click.pass_context
-def daemon(ctx, message, kill):
-    """デーモンモードの制御"""
+def daemon(ctx, kill):
+    """デーモンの終了 (--kill オプションで実行中のデーモンを終了)"""
     host = ctx.obj["HOST"]
     port = ctx.obj["PORT"]
     
@@ -93,8 +92,10 @@ def daemon(ctx, message, kill):
             logger.error(f"エラー発生: {e}")
             sys.exit(1)
     else:
-        print(f"以下のコマンドでデーモンモードを開始できます:")
-        print(f"hal --fix-reply-daemon=\"{message}\"")
+        print("デーモンの終了方法:")
+        print(f"bin/chat-client daemon --kill")
+        print("\nデーモンの起動方法:")
+        print(f"bin/hal --fix-reply-daemon=\"固定返答メッセージ\"")
 
 if __name__ == "__main__":
     cli(obj={})
