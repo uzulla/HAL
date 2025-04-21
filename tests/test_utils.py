@@ -1,7 +1,7 @@
+import io
+import json
 import os
 import sys
-import json
-import io
 from unittest.mock import patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -32,7 +32,7 @@ def test_format_json_response():
 
 def test_setup_logging():
     """ロギング設定関数のテスト"""
-    with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
+    with patch("sys.stderr", new_callable=io.StringIO):
         logger = setup_logging(verbose=False)
         assert logger is not None
         
