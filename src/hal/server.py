@@ -3,7 +3,7 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional
 
-from fastapi import Depends, FastAPI, Header, Request, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from loguru import logger
@@ -119,9 +119,10 @@ class HALServer:
                 except Exception as e:
                     logger.debug(f"リクエストボディの取得に失敗: {e}")
             
+            error_detail = f"Method '{request.method}' not allowed for URL '{request.url}'"
             return JSONResponse(
                 status_code=405,
-                content={"error": "method_not_allowed", "detail": f"Method '{request.method}' not allowed for URL '{request.url}'"}
+                content={"error": "method_not_allowed", "detail": error_detail}
             )
 
     def setup_routes(self):
