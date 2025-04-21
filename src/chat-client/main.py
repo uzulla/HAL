@@ -94,7 +94,7 @@ def daemon(ctx, message, kill):
             sys.exit(1)
     else:
         print(f"以下のコマンドでデーモンモードを開始できます:")
-        print(f"cd {os.path.dirname(os.path.dirname(os.path.abspath(__file__)))} && python -m hal.main --fix-reply-daemon=\"{message}\"")
+        print(f"hal --fix-reply-daemon=\"{message}\"")
 
 if __name__ == "__main__":
     cli(obj={})

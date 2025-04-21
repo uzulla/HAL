@@ -1,23 +1,27 @@
-#!/bin/bash
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-# HAL Test Client - CLI application launcher
-# This script launches the HAL test client
+"""
+HAL Test Client - CLI application launcher
+This script launches the HAL test client
+"""
 
-# Get the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+import sys
+import os
+import click
+import requests
+import json
+from loguru import logger
 
-# Get the project root directory (parent of bin)
-PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." &> /dev/null && pwd )"
+# Add the project root to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
-# Activate virtual environment if it exists
-if [ -d "$PROJECT_ROOT/venv" ]; then
-    source "$PROJECT_ROOT/venv/bin/activate"
-fi
+import importlib.util
+spec = importlib.util.spec_from_file_location("main", os.path.join(project_root, "src", "chat-client", "main.py"))
+main_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(main_module)
+cli = main_module.cli
 
-# Run the HAL test client with all arguments passed to this script
-python -m src.chat-client.main "$@"
-
-# Deactivate virtual environment if it was activated
-if [ -n "$VIRTUAL_ENV" ]; then
-    deactivate
-fi
+if __name__ == "__main__":
+    cli(obj={})

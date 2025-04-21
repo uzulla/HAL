@@ -1,23 +1,50 @@
-#!/bin/bash
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-# HAL - Humans Are Listening - CLI/TUI application launcher
-# This script launches the HAL application
+"""
+HAL - Humans Are Listening - CLI/TUI application launcher
+This script launches the HAL application
+"""
 
-# Get the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+import sys
+import os
+import argparse
+import uvicorn
+from loguru import logger
 
-# Get the project root directory (parent of bin)
-PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." &> /dev/null && pwd )"
+# Add the project root to the Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
-# Activate virtual environment if it exists
-if [ -d "$PROJECT_ROOT/venv" ]; then
-    source "$PROJECT_ROOT/venv/bin/activate"
-fi
+from src.hal.server import HALServer
 
-# Run the HAL application with all arguments passed to this script
-python -m src.hal.main "$@"
+def main():
+    """HAL - Humans Are Listening - CLI/TUIアプリケーション"""
+    parser = argparse.ArgumentParser(description="HAL - Humans Are Listening - CLI/TUIアプリケーション")
+    parser.add_argument("--host", default="127.0.0.1", help="ホストアドレス")
+    parser.add_argument("--port", type=int, default=8000, help="ポート番号")
+    parser.add_argument("-v", "--verbose", action="store_true", help="詳細なログ出力モード")
+    parser.add_argument("--fix-reply-daemon", help="固定返答を返すデーモンモード")
+    
+    args = parser.parse_args()
+    
+    # ログ設定
+    logger.remove()
+    if args.verbose:
+        logger.add(sys.stderr, level="DEBUG")
+    else:
+        logger.add(sys.stderr, level="INFO")
+    
+    logger.info("HALを起動します")
+    
+    # サーバーインスタンス作成
+    server = HALServer(verbose=args.verbose, fix_reply=args.fix_reply_daemon)
+    
+    # サーバー起動
+    mode = "デーモンモード" if args.fix_reply_daemon else "通常モード"
+    logger.info(f"HALサーバーを起動します({mode}) - {args.host}:{args.port}")
+    
+    uvicorn.run(server.app, host=args.host, port=args.port)
 
-# Deactivate virtual environment if it was activated
-if [ -n "$VIRTUAL_ENV" ]; then
-    deactivate
-fi
+if __name__ == "__main__":
+    main()
