@@ -1,6 +1,6 @@
 import os
 import sys
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch, AsyncMock
 
 import pytest
 
@@ -81,8 +81,40 @@ async def test_chat_completions_busy():
         routes = server.app.routes
         chat_route = [r for r in routes if r.path == "/v1/chat/completions"][0]
         
+        mock_raw_request = MagicMock()
+        mock_raw_request.headers = {"Content-Type": "application/json"}
+        mock_raw_request.body = AsyncMock(return_value=b'{}')
+        
         with patch("src.hal.server.authenticate", return_value=True):
-            response = await chat_route.endpoint(request)
+            response = await chat_route.endpoint(request, mock_raw_request)
             
             assert response.status_code == 503
             assert response.body.decode("utf-8") == '{"error":"server_busy"}'
+
+
+@pytest.mark.asyncio
+async def test_verbose_request_logging():
+    """verboseモードでのHTTPリクエスト詳細ログのテスト"""
+    server = HALServer(verbose=True)
+    
+    with patch("src.hal.server.logger") as mock_logger:
+        with patch("src.hal.server.request_lock") as mock_lock:
+            mock_lock.acquire.return_value = True
+            
+            request = ChatCompletionRequest(
+                model="gpt-4", 
+                messages=[{"role": "user", "content": "こんにちは"}]
+            )
+            
+            mock_raw_request = MagicMock()
+            mock_raw_request.headers = {"Content-Type": "application/json"}
+            mock_raw_request.body = AsyncMock(return_value=b'{"test": "data"}')
+            
+            routes = server.app.routes
+            chat_route = [r for r in routes if r.path == "/v1/chat/completions"][0]
+            
+            with patch("src.hal.server.authenticate", return_value=True):
+                await chat_route.endpoint(request, mock_raw_request)
+                
+                mock_logger.debug.assert_any_call(f"HTTPリクエストヘッダー: {dict(mock_raw_request.headers)}")
+                mock_logger.debug.assert_any_call("HTTPリクエストボディ: {\"test\": \"data\"}")

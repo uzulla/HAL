@@ -3,7 +3,7 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional
 
-from fastapi import Depends, FastAPI, Header
+from fastapi import Depends, FastAPI, Header, Request
 from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import BaseModel, Field
@@ -47,10 +47,15 @@ class HALServer:
         @self.app.post("/v1/chat/completions")
         async def chat_completions(
             request: ChatCompletionRequest,
+            raw_request: Request,
             authenticated: bool = Depends(authenticate)
         ):
             if self.verbose:
                 logger.info(f"リクエスト受信: {request}")
+                logger.debug(f"HTTPリクエストヘッダー: {dict(raw_request.headers)}")
+                body = await raw_request.body()
+                if body:
+                    logger.debug(f"HTTPリクエストボディ: {body.decode('utf-8', errors='replace')}")
             
             if not request_lock.acquire(blocking=False):
                 if self.verbose:
