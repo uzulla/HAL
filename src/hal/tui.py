@@ -61,13 +61,13 @@ class TUIApp(App):
     """
     
     current_request = reactive(None)
-    response_ready = asyncio.Event()
     response_data = None
     
     def __init__(self, request_data: Dict[str, Any], verbose: bool = False):
         super().__init__()
         self.request_data = request_data
         self.verbose = verbose
+        self.response_ready = asyncio.Event()
         if verbose:
             logger.info("TUIを初期化しました")
     
@@ -85,13 +85,13 @@ class TUIApp(App):
             yield TextArea(id="response-input")
         
         with Horizontal(id="controls-container"):
-            yield Button("送信 [Enter]", id="send", variant="primary")
+            yield Button("送信 [Ctrl+Enter]", id="send", variant="primary")
             yield Button("対応不可 [F1]", id="cannot-answer", variant="warning")
             yield Button("内部エラー [F2]", id="internal-error", variant="error")
             yield Button("権限なし [F3]", id="forbidden", variant="error")
         
         with Container(id="help-container"):
-            yield Static("操作方法: [F1] 対応不可 | [F2] 内部エラー | [F3] 権限なし | [Enter] 送信")
+            yield Static("操作方法: [F1] 対応不可 | [F2] 内部エラー | [F3] 権限なし | [Ctrl+Enter/Cmd+Enter] 送信")
         
         yield Footer()
     
@@ -163,6 +163,8 @@ class TUIApp(App):
             self.response_data = {"error": "forbidden"}
             self.response_ready.set()
             self.exit()
+        elif event.key == "ctrl+enter" or event.key == "ctrl+m" or event.key == "cmd+enter" or event.key == "cmd+m":
+            self.submit_response()
         elif event.key == "enter" and not isinstance(self.focused, TextArea):
             self.submit_response()
     
