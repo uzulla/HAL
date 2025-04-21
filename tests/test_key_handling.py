@@ -1,10 +1,6 @@
-import asyncio
 import os
 import sys
 from unittest.mock import MagicMock, patch
-
-import pytest
-from textual.widgets import TextArea
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -65,11 +61,10 @@ def test_key_handling_enter_logic():
         "messages": [{"role": "user", "content": "テスト"}]
     }
     
-    original_on_key = TUIApp.on_key
-    
     def mock_on_key(self, event):
         """モック版の on_key メソッド"""
-        if event.key == "ctrl+enter" or event.key == "ctrl+m" or event.key == "cmd+enter" or event.key == "cmd+m":
+        if (event.key == "ctrl+enter" or event.key == "ctrl+m" or 
+            event.key == "cmd+enter" or event.key == "cmd+m"):
             self.submit_response()
         elif event.key == "enter":
             pass

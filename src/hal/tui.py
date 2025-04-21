@@ -91,7 +91,8 @@ class TUIApp(App):
             yield Button("権限なし [F3]", id="forbidden", variant="error")
         
         with Container(id="help-container"):
-            yield Static("操作方法: [F1] 対応不可 | [F2] 内部エラー | [F3] 権限なし | [Ctrl+Enter/Cmd+Enter] 送信")
+            yield Static("操作方法: [F1] 対応不可 | [F2] 内部エラー | [F3] 権限なし | "
+                         "[Ctrl+Enter/Cmd+Enter] 送信")
         
         yield Footer()
     
@@ -163,7 +164,8 @@ class TUIApp(App):
             self.response_data = {"error": "forbidden"}
             self.response_ready.set()
             self.exit()
-        elif event.key == "ctrl+enter" or event.key == "ctrl+m" or event.key == "cmd+enter" or event.key == "cmd+m":
+        elif (event.key == "ctrl+enter" or event.key == "ctrl+m" or 
+              event.key == "cmd+enter" or event.key == "cmd+m"):
             self.submit_response()
         elif event.key == "enter" and not isinstance(self.focused, TextArea):
             self.submit_response()
