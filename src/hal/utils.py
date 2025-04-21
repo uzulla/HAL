@@ -1,6 +1,8 @@
 import json
+from typing import Any, Dict
+
 from loguru import logger
-from typing import Dict, Any
+
 
 def format_json_response(data: Dict[str, Any], indent: int = 2) -> str:
     """JSON応答を整形して返す"""

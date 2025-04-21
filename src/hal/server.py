@@ -1,11 +1,12 @@
-from fastapi import FastAPI, HTTPException, Header, Depends, Request
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional, Literal
+import threading
 import time
 import uuid
+from typing import Any, Dict, List, Optional
+
+from fastapi import Depends, FastAPI, Header
+from fastapi.responses import JSONResponse
 from loguru import logger
-import threading
+from pydantic import BaseModel, Field
 
 request_lock = threading.Lock()
 

@@ -1,12 +1,13 @@
-from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, TextArea, Label, Button, Static
-from textual.containers import Container, Vertical, Horizontal
-from textual.reactive import reactive
 import asyncio
-from typing import Dict, Any, Optional
-from pydantic import BaseModel
-import json
+from typing import Any, Dict
+
 from loguru import logger
+from pydantic import BaseModel
+from textual.app import App, ComposeResult
+from textual.containers import Container, Horizontal
+from textual.reactive import reactive
+from textual.widgets import Button, Footer, Header, Label, Static, TextArea
+
 
 class Message(BaseModel):
     role: str

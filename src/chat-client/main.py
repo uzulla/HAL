@@ -1,10 +1,10 @@
-import click
-import requests
 import json
 import sys
-from typing import List, Dict, Any
+
+import click
+import requests
 from loguru import logger
-import os
+
 
 @click.group()
 @click.option("-v", "--verbose", is_flag=True, help="詳細なログ出力")
@@ -67,7 +67,7 @@ def send(ctx, model, system, user, max_tokens, temperature):
         try:
             response_json = response.json()
             print(json.dumps(response_json, indent=2, ensure_ascii=False))
-        except:
+        except Exception:
             print(f"応答: {response.text}")
     
     except Exception as e:
@@ -93,10 +93,10 @@ def daemon(ctx, kill):
             sys.exit(1)
     else:
         print("デーモンの終了方法:")
-        print(f"bin/chat-client daemon --kill")
+        print("bin/chat-client daemon --kill")
         
         print("\nデーモンの起動方法:")
-        print(f"bin/hal --fix-reply-daemon=\"固定返答メッセージ\"")
+        print("bin/hal --fix-reply-daemon=\"固定返答メッセージ\"")
 
 if __name__ == "__main__":
     cli(obj={})
