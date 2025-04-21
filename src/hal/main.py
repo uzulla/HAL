@@ -1,8 +1,11 @@
+import sys
+
 import click
 import uvicorn
 from loguru import logger
-import sys
+
 from .server import HALServer
+
 
 @click.command()
 @click.option("--host", default="127.0.0.1", help="ホストアドレス")
