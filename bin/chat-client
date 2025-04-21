@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-HAL Test Client - CLI application launcher
-This script launches the HAL test client
+HAL Test Client
 """
 
 import sys

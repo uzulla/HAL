@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-HAL - Humans Are Listening - CLI/TUI application launcher
-This script launches the HAL application
+HAL - Humans Are Listening
 """
 
 import sys
@@ -19,8 +18,8 @@ sys.path.insert(0, project_root)
 from src.hal.server import HALServer
 
 def main():
-    """HAL - Humans Are Listening - CLI/TUIアプリケーション"""
-    parser = argparse.ArgumentParser(description="HAL - Humans Are Listening - CLI/TUIアプリケーション")
+    """HAL - Humans Are Listening"""
+    parser = argparse.ArgumentParser(description="HAL - Humans Are Listening")
     parser.add_argument("--host", default="127.0.0.1", help="ホストアドレス")
     parser.add_argument("--port", type=int, default=8000, help="ポート番号")
     parser.add_argument("-v", "--verbose", action="store_true", help="詳細なログ出力モード")

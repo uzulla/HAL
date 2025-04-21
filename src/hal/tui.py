@@ -17,7 +17,7 @@ class TUIApp(App):
     Screen {
         layout: grid;
         grid-size: 1;
-        grid-rows: 1fr 3fr 1fr;
+        grid-rows: 1fr 3fr 1fr auto;
     }
     
         height: 100%;
@@ -32,6 +32,14 @@ class TUIApp(App):
         height: 100%;
         layout: horizontal;
         border: solid red;
+    }
+    
+        height: auto;
+        border: solid yellow;
+        background: $accent;
+        color: $text;
+        text-align: center;
+        padding: 1;
     }
     
     Button {
@@ -72,6 +80,9 @@ class TUIApp(App):
             yield Button("対応不可 [F1]", id="cannot-answer", variant="warning")
             yield Button("内部エラー [F2]", id="internal-error", variant="error")
             yield Button("権限なし [F3]", id="forbidden", variant="error")
+        
+        with Container(id="help-container"):
+            yield Static("操作方法: [F1] 対応不可 | [F2] 内部エラー | [F3] 権限なし | [Enter] 送信")
         
         yield Footer()
     
