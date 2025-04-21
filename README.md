@@ -37,26 +37,26 @@ pip install -r requirements.txt
 
 ```bash
 # 通常モード
-python -m src.hal.main
+bin/hal
 
 # verboseモード
-python -m src.hal.main -v
+bin/hal -v
 
 # 固定返答デーモンモード
-python -m src.hal.main --fix-reply-daemon="こんにちは、休暇中です。"
+bin/hal --fix-reply-daemon="こんにちは、休暇中です。"
 ```
 
 ### テストクライアントの使用
 
 ```bash
 # メッセージ送信
-python -m src.chat-client.main send --user "こんにちは、元気ですか？"
+bin/chat-client send --user "こんにちは、元気ですか？"
 
 # システムプロンプト付きメッセージ送信
-python -m src.chat-client.main send --system "あなたは医療アシスタントです。" --user "頭痛がします"
+bin/chat-client send --system "あなたは医療アシスタントです。" --user "頭痛がします"
 
 # デーモンの終了
-python -m src.chat-client.main daemon --kill --message "任意のメッセージ"
+bin/chat-client daemon --kill --message "任意のメッセージ"
 ```
 
 ## 操作方法
