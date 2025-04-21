@@ -94,8 +94,6 @@ def daemon(ctx, kill):
     else:
         print("デーモンの終了方法:")
         print(f"bin/chat-client daemon --kill")
-        print("\nデーモンの起動方法:")
-        print(f"bin/hal --fix-reply-daemon=\"固定返答メッセージ\"")
 
 if __name__ == "__main__":
     cli(obj={})
