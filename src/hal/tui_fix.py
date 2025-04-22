@@ -19,11 +19,14 @@ class Message(BaseModel):
 
 
 class TUIApp(App):
+    # アプリケーションのタイトルをクラス変数として設定
+    title = "Write Response"
+    
     CSS = """
     Screen {
         layout: grid;
         grid-size: 1;
-        grid-rows: 1fr 3fr auto;
+        grid-rows: 1fr 3fr 1;
     }
     
     #request-container {
@@ -38,12 +41,13 @@ class TUIApp(App):
     }
     
     #help-container {
-        height: auto;
-        border: solid yellow;
+        height: 1;
         background: $accent;
         color: $text;
         text-align: center;
-        padding: 1;
+        padding: 0;
+        margin: 0;
+        border: none;
     }
     
     TextArea {
@@ -55,7 +59,8 @@ class TUIApp(App):
     response_data = None
     
     def __init__(self, request_data: Dict[str, Any], verbose: bool = False):
-        super().__init__()
+        super().__init__()  # title パラメータは削除
+        self.title = "Write Response"  # インスタンス変数として明示的に設定
         self.request_data = request_data
         self.verbose = verbose
         self.response_ready = asyncio.Event()
@@ -63,7 +68,8 @@ class TUIApp(App):
             logger.info("TUIを初期化しました")
     
     def compose(self) -> ComposeResult:
-        yield Header(show_clock=True)
+        # ヘッダーを時計なしで表示（タイトルはAppから継承）
+        yield Header(show_clock=False)
         
         with Container(id="request-container"):
             yield Label("受信したリクエスト:")
@@ -76,9 +82,7 @@ class TUIApp(App):
             yield TextArea(id="response-input")
         
         with Container(id="help-container"):
-            yield Static("F1: 対応不可 | F2: 内部エラー | F3: 権限なし | F12: 送信")
-        
-        yield Footer()
+            yield Static("F1:対応不可 F2:内部エラー F3:権限なし F12:送信")
     
     def on_mount(self) -> None:
         """アプリが起動したときにリクエストデータを表示"""
