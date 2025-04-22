@@ -44,7 +44,11 @@ def test_main_verbose_mode():
                 
                 mock_setup_logging.assert_called_once_with(verbose=True, log_file=None)
                 
-                mock_server.assert_called_once_with(verbose=True, fix_reply=None, json_dump_log=None)
+                mock_server.assert_called_once_with(
+                    verbose=True, 
+                    fix_reply=None, 
+                    json_dump_log=None
+                )
 
 
 def test_main_daemon_mode():
@@ -57,7 +61,11 @@ def test_main_daemon_mode():
             
             assert result.exit_code == 0
             
-            mock_server.assert_called_once_with(verbose=False, fix_reply="固定応答", json_dump_log=None)
+            mock_server.assert_called_once_with(
+                verbose=False, 
+                fix_reply="固定応答", 
+                json_dump_log=None
+            )
 
 
 def test_main_log_file_option():
