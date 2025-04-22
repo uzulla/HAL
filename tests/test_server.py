@@ -98,7 +98,6 @@ async def test_chat_completions_busy():
             assert response.body.decode("utf-8") == '{"error":"server_busy"}'
 
 
-@pytest.mark.skip(reason="テストが停止する問題があるため一時的にスキップ")
 @pytest.mark.asyncio
 async def test_verbose_request_logging():
     """verboseモードでのHTTPリクエスト詳細ログのテスト"""
@@ -121,11 +120,13 @@ async def test_verbose_request_logging():
             chat_route = [r for r in routes if r.path == "/v1/chat/completions"][0]
             
             with patch("src.hal.server.authenticate", return_value=True):
-                await chat_route.endpoint(request, mock_raw_request)
-                
-                headers_dict = dict(mock_raw_request.headers)
-                mock_logger.debug.assert_any_call(f"HTTPリクエストヘッダー: {headers_dict}")
-                mock_logger.debug.assert_any_call("HTTPリクエストボディ: {\"test\": \"data\"}")
+                with patch("src.hal.tui_fix.process_request") as mock_process:
+                    mock_process.return_value = {"content": "テスト応答"}
+                    await chat_route.endpoint(request, mock_raw_request)
+                    
+                    headers_dict = dict(mock_raw_request.headers)
+                    mock_logger.debug.assert_any_call(f"HTTPリクエストヘッダー: {headers_dict}")
+                    mock_logger.debug.assert_any_call("HTTPリクエストボディ: {\"test\": \"data\"}")
 
 
 def test_message_model_array_content():
