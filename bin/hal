@@ -34,6 +34,7 @@ def main():
     parser.add_argument("--port", type=int, default=8000, help="ポート番号")
     parser.add_argument("-v", "--verbose", action="store_true", help="詳細なログ出力モード")
     parser.add_argument("--fix-reply-daemon", help="固定返答を返すデーモンモード")
+    parser.add_argument("--log", help="ログを出力するファイルパス")
     
     args = parser.parse_args()
     
@@ -43,6 +44,10 @@ def main():
         logger.add(sys.stderr, level="DEBUG")
     else:
         logger.add(sys.stderr, level="INFO")
+    
+    # ログファイルが指定されている場合、ファイルにもログを出力
+    if args.log:
+        logger.add(args.log, level="DEBUG" if args.verbose else "INFO", rotation=None, mode="a")
     
     logger.info("HALを起動します")
     

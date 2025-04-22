@@ -38,3 +38,28 @@ def test_setup_logging():
         
         logger = setup_logging(verbose=True)
         assert logger is not None
+
+
+def test_setup_logging_with_file():
+    """ファイルログ機能のテスト"""
+    test_log_file = "test_log.log"
+    
+    if os.path.exists(test_log_file):
+        os.unlink(test_log_file)
+    
+    try:
+        with patch("sys.stderr", new_callable=io.StringIO):
+            logger = setup_logging(verbose=False, log_file=test_log_file)
+            assert logger is not None
+            
+            logger.info("テストログメッセージ")
+            
+            assert os.path.exists(test_log_file)
+            
+            with open(test_log_file, "r") as f:
+                content = f.read()
+                assert "テストログメッセージ" in content
+    
+    finally:
+        if os.path.exists(test_log_file):
+            os.unlink(test_log_file)

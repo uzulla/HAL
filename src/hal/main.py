@@ -1,5 +1,3 @@
-import sys
-
 import click
 import uvicorn
 from loguru import logger
@@ -12,14 +10,13 @@ from .server import HALServer
 @click.option("--port", default=8000, help="ポート番号")
 @click.option("-v", "--verbose", is_flag=True, help="詳細なログ出力モード")
 @click.option("--fix-reply-daemon", help="固定返答を返すデーモンモード")
-def main(host, port, verbose, fix_reply_daemon):
+@click.option("--log", help="ログを出力するファイルパス")
+def main(host, port, verbose, fix_reply_daemon, log):
     """HAL - Humans Are Listening - CLI/TUIアプリケーション"""
     
-    logger.remove()
-    if verbose:
-        logger.add(sys.stderr, level="DEBUG")
-    else:
-        logger.add(sys.stderr, level="INFO")
+    from .utils import setup_logging
+    
+    setup_logging(verbose=verbose, log_file=log)
     
     logger.info("HALを起動します")
     
