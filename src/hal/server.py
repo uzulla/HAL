@@ -171,6 +171,12 @@ class HALServer:
                 if self.verbose:
                     logger.info(f"応答結果: {result}")
                 
+                if result is None:
+                    return JSONResponse(
+                        status_code=500,
+                        content={"error": "internal_error"}
+                    )
+                
                 if result.get("error") == "cannot_answer":
                     return JSONResponse(
                         status_code=200,
@@ -185,6 +191,11 @@ class HALServer:
                     return JSONResponse(
                         status_code=403,
                         content={"error": "forbidden"}
+                    )
+                elif result.get("error") == "keyboard_interrupt":
+                    return JSONResponse(
+                        status_code=200,
+                        content={"error": "cancelled"}
                     )
                 
                 return ChatCompletionResponse(

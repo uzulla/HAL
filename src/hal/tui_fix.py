@@ -172,14 +172,39 @@ async def process_request(request_data, verbose=False):
         logger.info("TUIでリクエストの処理を開始")
     
     app = TUIApp(request_data.dict(), verbose)
-    async def run_app():
-        await app.run_async()
+    task = None
     
-    asyncio.create_task(run_app())
-    
-    await app.response_ready.wait()
-    
-    if verbose:
-        logger.info(f"TUIからの応答: {app.response_data}")
-    
-    return app.response_data
+    try:
+        async def run_app():
+            try:
+                await app.run_async()
+            except KeyboardInterrupt:
+                logger.info("TUIでキーボード割り込みを検出しました")
+                app.response_data = {"error": "keyboard_interrupt"}
+                app.response_ready.set()
+                app.exit()
+        
+        task = asyncio.create_task(run_app())
+        
+        try:
+            await app.response_ready.wait()
+        except KeyboardInterrupt:
+            logger.info("メインスレッドでキーボード割り込みを検出しました")
+            app.response_data = {"error": "keyboard_interrupt"}
+            app.response_ready.set()
+            app.exit()
+        
+        if verbose:
+            logger.info(f"TUIからの応答: {app.response_data}")
+        
+        return app.response_data
+    except Exception as e:
+        logger.error(f"TUI処理中にエラーが発生しました: {e}")
+        return {"error": "internal_error"}
+    finally:
+        if task and not task.done():
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
