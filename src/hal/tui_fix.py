@@ -4,9 +4,9 @@ from typing import Any, Dict
 from loguru import logger
 from pydantic import BaseModel
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal
+from textual.containers import Container
 from textual.reactive import reactive
-from textual.widgets import Button, Footer, Header, Label, Static, TextArea
+from textual.widgets import Button, Header, Label, Static, TextArea
 
 
 class Message(BaseModel):
@@ -15,11 +15,14 @@ class Message(BaseModel):
 
 
 class TUIApp(App):
+    # アプリケーションのタイトルをクラス変数として設定
+    title = "Write Response"
+    
     CSS = """
     Screen {
         layout: grid;
         grid-size: 1;
-        grid-rows: 1fr 3fr 1fr auto;
+        grid-rows: 1fr 3fr 1;
     }
     
     #request-container {
@@ -33,23 +36,14 @@ class TUIApp(App):
         border: solid blue;
     }
     
-    #controls-container {
-        height: 100%;
-        layout: horizontal;
-        border: solid red;
-    }
-    
     #help-container {
-        height: auto;
-        border: solid yellow;
+        height: 1;
         background: $accent;
         color: $text;
         text-align: center;
-        padding: 1;
-    }
-    
-    Button {
-        width: 25%;
+        padding: 0;
+        margin: 0;
+        border: none;
     }
     
     TextArea {
@@ -62,6 +56,7 @@ class TUIApp(App):
     
     def __init__(self, request_data: Dict[str, Any], verbose: bool = False):
         super().__init__()
+        self.title = "Write Response"  # インスタンス変数として明示的に設定
         self.request_data = request_data
         self.verbose = verbose
         self.response_ready = asyncio.Event()
@@ -69,7 +64,8 @@ class TUIApp(App):
             logger.info("TUIを初期化しました")
     
     def compose(self) -> ComposeResult:
-        yield Header(show_clock=True)
+        # ヘッダーを時計なしで表示（タイトルはAppから継承）
+        yield Header(show_clock=False)
         
         with Container(id="request-container"):
             yield Label("受信したリクエスト:")
@@ -81,17 +77,8 @@ class TUIApp(App):
             yield Label("応答の入力:")
             yield TextArea(id="response-input")
         
-        with Horizontal(id="controls-container"):
-            yield Button("送信 [F12]", id="send", variant="primary")
-            yield Button("対応不可 [F1]", id="cannot-answer", variant="warning")
-            yield Button("内部エラー [F2]", id="internal-error", variant="error")
-            yield Button("権限なし [F3]", id="forbidden", variant="error")
-        
         with Container(id="help-container"):
-            yield Static("操作方法: [F1] 対応不可 | [F2] 内部エラー | [F3] 権限なし | "
-                         "[F12] 送信")
-        
-        yield Footer()
+            yield Static("F1:対応不可 F2:内部エラー F3:権限なし F12:送信")
     
     def on_mount(self) -> None:
         """アプリが起動したときにリクエストデータを表示"""
@@ -171,7 +158,7 @@ async def process_request(request_data, verbose=False):
     if verbose:
         logger.info("TUIでリクエストの処理を開始")
     
-    app = TUIApp(request_data.dict(), verbose)
+    app = TUIApp(request_data.model_dump(), verbose)
     async def run_app():
         await app.run_async()
     

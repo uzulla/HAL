@@ -4,9 +4,9 @@ from typing import Any, Dict, List, Union
 from loguru import logger
 from pydantic import BaseModel
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal
+from textual.containers import Container
 from textual.reactive import reactive
-from textual.widgets import Button, Footer, Header, Label, Static, TextArea
+from textual.widgets import Footer, Header, Label, Static, TextArea
 
 
 class MessageContentPart(BaseModel):
@@ -22,7 +22,7 @@ class TUIApp(App):
     Screen {
         layout: grid;
         grid-size: 1;
-        grid-rows: 1fr 3fr 1fr auto;
+        grid-rows: 1fr 3fr auto;
     }
     
     #request-container {
@@ -36,12 +36,6 @@ class TUIApp(App):
         border: solid blue;
     }
     
-    #controls-container {
-        height: 100%;
-        layout: horizontal;
-        border: solid red;
-    }
-    
     #help-container {
         height: auto;
         border: solid yellow;
@@ -49,10 +43,6 @@ class TUIApp(App):
         color: $text;
         text-align: center;
         padding: 1;
-    }
-    
-    Button {
-        width: 25%;
     }
     
     TextArea {
@@ -84,15 +74,13 @@ class TUIApp(App):
             yield Label("応答の入力:")
             yield TextArea(id="response-input")
         
-        with Horizontal(id="controls-container"):
-            yield Button("送信 [Ctrl+Enter]", id="send", variant="primary")
-            yield Button("対応不可 [F1]", id="cannot-answer", variant="warning")
-            yield Button("内部エラー [F2]", id="internal-error", variant="error")
-            yield Button("権限なし [F3]", id="forbidden", variant="error")
-        
         with Container(id="help-container"):
-            yield Static("操作方法: [F1] 対応不可 | [F2] 内部エラー | [F3] 権限なし | "
-                         "[Ctrl+Enter/Cmd+Enter] 送信")
+            # 長い行を複数行に分割
+            help_text = (
+                "F1: 対応不可 | F2: 内部エラー | F3: 権限なし | "
+                "Ctrl+Enter/Cmd+Enter: 送信"
+            )
+            yield Static(help_text)
         
         yield Footer()
     
@@ -131,25 +119,6 @@ class TUIApp(App):
         if self.verbose:
             logger.info("TUIにリクエスト情報を表示しました")
     
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        """ボタンが押されたときの処理"""
-        button_id = event.button.id
-        
-        if button_id == "send":
-            self.submit_response()
-        elif button_id == "cannot-answer":
-            self.response_data = {"error": "cannot_answer"}
-            self.response_ready.set()
-            self.exit()
-        elif button_id == "internal-error":
-            self.response_data = {"error": "internal_error"}
-            self.response_ready.set()
-            self.exit()
-        elif button_id == "forbidden":
-            self.response_data = {"error": "forbidden"}
-            self.response_ready.set()
-            self.exit()
-    
     def on_key(self, event) -> None:
         """キーボードショートカットの処理"""
         if event.key == "f1":
@@ -184,7 +153,7 @@ async def process_request(request_data, verbose=False):
     if verbose:
         logger.info("TUIでリクエストの処理を開始")
     
-    app = TUIApp(request_data.dict(), verbose)
+    app = TUIApp(request_data.model_dump(), verbose)
     async def run_app():
         await app.run_async()
     
