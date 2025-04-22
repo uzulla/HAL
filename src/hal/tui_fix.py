@@ -183,21 +183,36 @@ async def process_request(request_data, verbose=False):
                 app.response_data = {"error": "keyboard_interrupt"}
                 app.response_ready.set()
                 app.exit()
+            except Exception as e:
+                logger.error(f"TUI実行中にエラーが発生しました: {e}")
+                app.response_data = {"error": "internal_error"}
+                app.response_ready.set()
+                app.exit()
         
         task = asyncio.create_task(run_app())
         
         try:
-            await app.response_ready.wait()
+            await asyncio.wait_for(app.response_ready.wait(), timeout=30.0)
+        except asyncio.TimeoutError:
+            logger.warning("TUI応答待ちがタイムアウトしました")
+            app.response_data = {"error": "timeout"}
+            app.response_ready.set()
+            app.exit()
         except KeyboardInterrupt:
             logger.info("メインスレッドでキーボード割り込みを検出しました")
             app.response_data = {"error": "keyboard_interrupt"}
+            app.response_ready.set()
+            app.exit()
+        except asyncio.CancelledError:
+            logger.info("TUI処理がキャンセルされました")
+            app.response_data = {"error": "cancelled"}
             app.response_ready.set()
             app.exit()
         
         if verbose:
             logger.info(f"TUIからの応答: {app.response_data}")
         
-        return app.response_data
+        return app.response_data or {"error": "unknown_error"}
     except Exception as e:
         logger.error(f"TUI処理中にエラーが発生しました: {e}")
         return {"error": "internal_error"}
@@ -205,6 +220,6 @@ async def process_request(request_data, verbose=False):
         if task and not task.done():
             task.cancel()
             try:
-                await task
-            except asyncio.CancelledError:
+                await asyncio.wait_for(asyncio.shield(task), timeout=1.0)
+            except (asyncio.TimeoutError, asyncio.CancelledError, Exception):
                 pass

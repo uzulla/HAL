@@ -1,16 +1,8 @@
-import signal
-import sys
-
 import click
 import uvicorn
 from loguru import logger
 
 from .server import HALServer
-
-
-def signal_handler(sig, frame):
-    logger.info("終了シグナルを受信しました。HALを終了します...")
-    sys.exit(0)
 
 
 @click.command()
@@ -21,9 +13,6 @@ def signal_handler(sig, frame):
 @click.option("--log", help="ログを出力するファイルパス")
 def main(host, port, verbose, fix_reply_daemon, log):
     """HAL - Humans Are Listening - CLI/TUIアプリケーション"""
-    
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
     
     from .utils import setup_logging
     
@@ -37,7 +26,13 @@ def main(host, port, verbose, fix_reply_daemon, log):
     logger.info(f"HALサーバーを起動します({mode}) - {host}:{port}")
     
     try:
-        uvicorn.run(server.app, host=host, port=port, timeout_graceful_shutdown=10)
+        uvicorn.run(
+            server.app, 
+            host=host, 
+            port=port, 
+            timeout_graceful_shutdown=10,
+            log_level="info"
+        )
     except KeyboardInterrupt:
         logger.info("キーボード割り込みを検出しました。HALを終了します...")
     except Exception as e:

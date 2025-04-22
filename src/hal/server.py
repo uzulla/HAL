@@ -197,6 +197,16 @@ class HALServer:
                         status_code=200,
                         content={"error": "cancelled"}
                     )
+                elif result.get("error") == "timeout":
+                    return JSONResponse(
+                        status_code=200,
+                        content={"error": "timeout"}
+                    )
+                elif result.get("error") == "cancelled":
+                    return JSONResponse(
+                        status_code=200,
+                        content={"error": "cancelled"}
+                    )
                 
                 return ChatCompletionResponse(
                     model=request.model,
