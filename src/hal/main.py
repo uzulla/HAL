@@ -37,7 +37,7 @@ def main(host, port, verbose, fix_reply_daemon, log):
     logger.info(f"HALサーバーを起動します({mode}) - {host}:{port}")
     
     try:
-        uvicorn.run(server.app, host=host, port=port, timeout_graceful_shutdown=2)
+        uvicorn.run(server.app, host=host, port=port, timeout_graceful_shutdown=10)
     except KeyboardInterrupt:
         logger.info("キーボード割り込みを検出しました。HALを終了します...")
     except Exception as e:
