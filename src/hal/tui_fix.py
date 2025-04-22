@@ -1,5 +1,9 @@
 import asyncio
+import sys
 from typing import Any, Dict
+
+# Debug print to check if this file is being loaded
+print(f"Loading updated TUI module from {__file__}", file=sys.stderr)
 
 from loguru import logger
 from pydantic import BaseModel
@@ -19,7 +23,7 @@ class TUIApp(App):
     Screen {
         layout: grid;
         grid-size: 1;
-        grid-rows: 1fr 3fr 1fr auto;
+        grid-rows: 1fr 3fr auto;
     }
     
     #request-container {
@@ -33,12 +37,6 @@ class TUIApp(App):
         border: solid blue;
     }
     
-    #controls-container {
-        height: 100%;
-        layout: horizontal;
-        border: solid red;
-    }
-    
     #help-container {
         height: auto;
         border: solid yellow;
@@ -46,10 +44,6 @@ class TUIApp(App):
         color: $text;
         text-align: center;
         padding: 1;
-    }
-    
-    Button {
-        width: 25%;
     }
     
     TextArea {
@@ -81,15 +75,8 @@ class TUIApp(App):
             yield Label("応答の入力:")
             yield TextArea(id="response-input")
         
-        with Horizontal(id="controls-container"):
-            yield Button("送信 [F12]", id="send", variant="primary")
-            yield Button("対応不可 [F1]", id="cannot-answer", variant="warning")
-            yield Button("内部エラー [F2]", id="internal-error", variant="error")
-            yield Button("権限なし [F3]", id="forbidden", variant="error")
-        
         with Container(id="help-container"):
-            yield Static("操作方法: [F1] 対応不可 | [F2] 内部エラー | [F3] 権限なし | "
-                         "[F12] 送信")
+            yield Static("F1: 対応不可 | F2: 内部エラー | F3: 権限なし | F12: 送信")
         
         yield Footer()
     
