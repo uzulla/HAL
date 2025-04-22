@@ -153,7 +153,7 @@ async def process_request(request_data, verbose=False):
     if verbose:
         logger.info("TUIでリクエストの処理を開始")
     
-    app = TUIApp(request_data.dict(), verbose)
+    app = TUIApp(request_data.model_dump(), verbose)
     async def run_app():
         await app.run_async()
     
