@@ -79,8 +79,40 @@ def test_main_log_file_option():
                     mock_setup_logging.assert_called_once_with(
                         verbose=False, log_file=test_log_file
                     )
-                    mock_server.assert_called_once_with(verbose=False, fix_reply=None)
+                    mock_server.assert_called_once_with(
+                        verbose=False, 
+                        fix_reply=None, 
+                        json_dump_log=None
+                    )
     
     finally:
         if os.path.exists(test_log_file):
             os.unlink(test_log_file)
+
+
+def test_main_json_dump_log_option():
+    """HALメイン関数のJSONダンプログオプションテスト"""
+    runner = CliRunner()
+    test_json_dump_log_file = "test_json_dump.ndjson"
+    
+    if os.path.exists(test_json_dump_log_file):
+        os.unlink(test_json_dump_log_file)
+    
+    try:
+        with patch("src.hal.main.uvicorn.run"):
+            with patch("src.hal.main.HALServer") as mock_server:
+                with patch("src.hal.utils.setup_logging") as mock_setup_logging:
+                    result = runner.invoke(main, ["--json-dump-log", test_json_dump_log_file])
+                    
+                    assert result.exit_code == 0
+                    
+                    mock_setup_logging.assert_called_once_with(
+                        verbose=False, log_file=None
+                    )
+                    mock_server.assert_called_once_with(
+                        verbose=False, fix_reply=None, json_dump_log=test_json_dump_log_file
+                    )
+    
+    finally:
+        if os.path.exists(test_json_dump_log_file):
+            os.unlink(test_json_dump_log_file)

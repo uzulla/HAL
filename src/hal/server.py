@@ -37,10 +37,16 @@ def authenticate(token: Optional[str] = Header(None, alias="Authorization")) -> 
     return True
 
 class HALServer:
-    def __init__(self, verbose: bool = False, fix_reply: Optional[str] = None):
+    def __init__(
+        self, 
+        verbose: bool = False, 
+        fix_reply: Optional[str] = None, 
+        json_dump_log: Optional[str] = None
+    ):
         self.app = FastAPI()
         self.verbose = verbose
         self.fix_reply = fix_reply
+        self.json_dump_log = json_dump_log
         self.setup_exception_handlers()
         self.setup_routes()
         self.daemon_mode = fix_reply is not None
@@ -142,6 +148,10 @@ class HALServer:
                 body = await raw_request.body()
                 if body:
                     logger.debug(f"HTTPリクエストボディ: {body.decode('utf-8', errors='replace')}")
+                    if self.json_dump_log:
+                        from .utils import dump_json_to_file
+                        request_data = await raw_request.json()
+                        dump_json_to_file(self.json_dump_log, request_data, is_request=True)
             
             if not request_lock.acquire(blocking=False):
                 if self.verbose:
@@ -171,17 +181,34 @@ class HALServer:
                 if self.verbose:
                     logger.info(f"応答結果: {result}")
                 
+                if self.json_dump_log and not result.get("error"):
+                    from .utils import dump_json_to_file
+                    response_data = {"role": "assistant", "content": result["content"]}
+                    dump_json_to_file(self.json_dump_log, response_data, is_request=False)
+                
                 if result.get("error") == "cannot_answer":
+                    if self.json_dump_log:
+                        from .utils import dump_json_to_file
+                        error_data = {"error": "cannot_answer"}
+                        dump_json_to_file(self.json_dump_log, error_data, is_request=False)
                     return JSONResponse(
                         status_code=200,
                         content={"error": "cannot_answer"}
                     )
                 elif result.get("error") == "internal_error":
+                    if self.json_dump_log:
+                        from .utils import dump_json_to_file
+                        error_data = {"error": "internal_error"}
+                        dump_json_to_file(self.json_dump_log, error_data, is_request=False)
                     return JSONResponse(
                         status_code=500,
                         content={"error": "internal_error"}
                     )
                 elif result.get("error") == "forbidden":
+                    if self.json_dump_log:
+                        from .utils import dump_json_to_file
+                        error_data = {"error": "forbidden"}
+                        dump_json_to_file(self.json_dump_log, error_data, is_request=False)
                     return JSONResponse(
                         status_code=403,
                         content={"error": "forbidden"}
