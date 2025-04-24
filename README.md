@@ -80,3 +80,15 @@ ruff check .
 ruff check . --fix
 ```
 
+## テスト
+
+pytestを使用してユニットテストを実行できます。
+
+```bash
+# すべてのテストを実行
+pytest
+
+# 詳細出力でテストを実行
+pytest -v
+```
+
